@@ -83,45 +83,82 @@ input, select, textarea, button{font-size:16px;} /* prevents iOS auto-zoom on fo
   const countEl = document.getElementById('count');
   const saveStatus = document.getElementById('save-status');
 
+  const DEFAULTS_VERSION = '2026-11-08';
+  const VERSION_KEY = 'qed-ledger-version';
+  const REMOVED_KEY = 'qed-ledger-removed';
+  const RETIRED = ['d2'];
+
   const defaults = [
-    {id:'d1', title:'Morocco: OEM approval for relocated OCP trial (kiln change, Q1 2025)', date:'2026-12-31', status:'pending', note:'Trial equipment on-site since 2025; company in active dialogue with OCP to expedite. No trial has yet run.'},
-    {id:'d2', title:'Morocco: $350,000 licence fee (originally due Jan 2025)', date:'2025-01-31', status:'overdue', note:'Revised timetable agreed per Nov 2025 Final Results; payment status unconfirmed as of last update.'},
-    {id:'d3', title:'Morocco: signed commercial MSAR supply agreement', date:'2026-12-31', status:'pending', note:'Deadline tied to Younes Maamar representation-agreement warrants (extended Aug 2026). Meeting to revisit by 15 Dec 2026 if missed.'},
-    {id:'d4', title:'MSC / Cargill: bilateral agreements signed', date:'', status:'overdue', note:'Described as "near final form" in both June 2025 and into 2026 updates without signature.'},
-    {id:'d5', title:'MSC / Cargill: commercial-scale trial commences (Antwerp)', date:'', status:'pending', note:'Originally targeted Q1 2025, then Q3 2025 — both missed. No firm date as of latest update.'},
-    {id:'d6', title:'Cash runway funded through', date:'2027-06-30', status:'pending', note:'Per July 2026 placing/subscription document, assuming milestones land on schedule.'},
-    {id:'d7', title:'Positive company-wide cashflow guided', date:'2029-06-30', status:'pending', note:'FY2028-29 per July 2026 fundraise documentation — end of range.'},
-    {id:'d8', title:'Panama: Sparkle Power Fuel Supply Agreement signed', date:'', status:'pending', note:'Trial at El Giral plant concluded successfully July 2025 (first use on Everllence/MAN 4-stroke engines). FY25 report says "planning next steps towards fuel permitting and commercial supply" — no Fuel Supply Agreement yet as of latest update.'},
-    {id:'d9', title:'Utah/Valkor: $0.30m licence fee payment', date:'2026-03-31', status:'pending', note:'Part of renegotiated $1.0m fee schedule after original $350k (due Jan 2025) went unpaid. $50k paid immediately on renegotiation per Nov 2025 report.'},
-    {id:'d10', title:'Utah/Valkor: remaining $0.65m licence fee payment', date:'2026-06-30', status:'pending', note:'Final tranche of the renegotiated $1.0m licence fee.'},
-    {id:'d11', title:'Utah/Valkor: $0.2m payment for 600bpd MMU delivery', date:'2026-09-30', status:'pending', note:'Additional $0.3m due on later delivery of a full-scale 6,000bpd MMU (no date given).'},
-    {id:'d12', title:'Utah/Valkor: quarterly $75k support payments begin', date:'2026-07-01', status:'pending', note:'Minimum two years of quarterly payments starting Q3 2026, per renegotiated terms.'},
-    {id:'d13', title:'Utah/Valkor: 500bpd oil-sands pilot plant operational', date:'2026-12-31', status:'pending', note:'Guided for Q4 2026 per March 2026 company update. Oil samples for Quadrise testing were expected Q2 2026.'},
-    {id:'d14', title:'Aggregate ~$1.5m Valkor receipts assumed in cash forecasts', date:'2026-12-31', status:'pending', note:'FY25 annual report flags this as a going-concern risk: "there remains a risk that the $1.5m from Valkor is either not received, reduced in amount, or is significantly delayed."'},
-    {id:'d15', title:'TRACKED SLIP: positive cashflow date moved once already', date:'2027-06-30', status:'overdue', note:'FY25 annual report (Sept 2025) said positive cashflows "now forecast to commence in Q1 2027." July 2026 placing doc instead guided runway to 30 Jun 2027 with positive cashflow implied around FY2028-29 — a slip of well over a year in under 10 months. Watch for further movement.'},
-    {id:'d16', title:'MSC: commercial-scale bioMSAR trial aboard Leandra V', date:'2026-03-31', status:'overdue', note:'FY25 annual report (Sept 2025) stated the trial was "planned for early 2026." Bilateral MSC/Cargill agreements still unsigned as of latest update, so this date has passed without the trial starting.'},
-    {id:'d17', title:'Refinery supply agreement signed (any of 4 in active discussion)', date:'', status:'pending', note:'New workstream disclosed in July 2026 placing document under Peter Borup\u2019s revised strategy — "active discussions with four strategically located refineries." No agreement yet; refineries would be the actual production partners under Quadrise\u2019s licensing model.'},
-    {id:'d18', title:'Morocco: revised OCP alternative-site trial plan signed', date:'2026-04-30', status:'overdue', note:'March 2026 interim results said OCP and Quadrise "reaffirmed their commitment to MSAR trials at an alternative site, with a revised trial plan expected to be signed shortly." Still unsigned as of the July 2026 fundraise document, which described the plan as still "in negotiation."'},
-    {id:'d19', title:'TRACKED SLIP: Valkor 500bpd pilot plant operational date moved', date:'2026-12-31', status:'overdue', note:'AGM update (28 Nov 2025) guided Q2 2026. Interim results (26 Mar 2026) revised this to Q4 2026 — a slip of two quarters in four months. Oil-sample testing date for Quadrise also moved from Q1 2026 to Q2 2026 across the same two statements.'}
+    {id:'d1', title:'Morocco: OEM approval for OCP trial at Jorf Lasfar (revised kiln/line)', date:'2026-10-26', status:'met', note:'Received per 26 Oct 2026 results RNS; trial equipment is on site. Context: relocation was disclosed in Q1 2025, OEM approval was awaited from mid-2025 (Q3 2025 expectation) and only arrived by Oct 2026.'},
+    {id:'d18', title:'Morocco: OCP trial agreement signed (30-day paid trial)', date:'2026-06-30', status:'overdue', note:'Mar 2026: revised plan "expected to be signed shortly" / Q2 2026. 26 Oct 2026 RNS: "working to conclude the trial agreement"; going-concern note says an amendment is "pending". Trial cannot start until it is signed.'},
+    {id:'d3', title:'Morocco: signed commercial MSAR supply agreement (Maamar warrants deadline)', date:'2026-12-31', status:'pending', note:'12m warrants for the Morocco representative vest only if a signed Commercial MSAR Fuel Supply Agreement is announced by 31 Dec 2026 (parties to meet week before 15 Dec to reset if missed). The 30-day trial has not started and the trial agreement is unsigned, so this looks unlikely on the RNS timetable.'},
+    {id:'d4', title:'MSC / Cargill: bilateral agreements signed', date:'', status:'overdue', note:'"Near final form" in June 2025; still unsigned at 26 Oct 2026. New open items: original bunker barge operator reallocated its barge (alternative barge owners being sought) and firm glycerine prices. Board has set signed contracts as the milestone the Executive is measured against.'},
+    {id:'d5', title:'MSC / Cargill: Antwerp trial on MSC Leandra V commences', date:'2027-03-31', status:'pending', note:'On-site preparation expected Q4 2026, trial to commence Q1 2027 (26 Oct 2026). Earlier targets missed: Q1 2025, Q3 2025, "early 2026". Plan: 2-3 months proof of concept then c.4,000 hours bioMSAR for engine-maker (Wartsila) LONO; CEO wants a supply agreement signed during the LONO phase.'},
+    {id:'d6', title:'Cash runway funded through', date:'2027-09-30', status:'pending', note:'Cash £2.1m at 30 Jun 2026 plus c.£1.4m net raised July 2026 (raise was £1.6m gross vs up to £2.4m sought). Operating outflow c.£0.31m/month. Runway is "assuming delivery in line with the Board’s expectations". No binding commitments for further funding; auditors flag a material uncertainty on going concern. Earlier guidance: 30 Jun 2027.'},
+    {id:'d7', title:'Sustainable positive cashflow forecast to commence', date:'2028-08-31', status:'pending', note:'Now "August 2028" (26 Oct 2026). Gap between runway end (Sep 2027) and this date is about 11 months of burn, i.e. roughly £3m+ of further funding at the current rate (my arithmetic, not a company figure).'},
+    {id:'d8', title:'Panama: supply partner secured for Sparkle Power', date:'', status:'pending', note:'Trial completed July 2025. 26 Oct 2026: fuel permitting progressed, "securing a suitable supply partner the immediate priority". No fuel supply agreement. Over 13 months since the trial.'},
+    {id:'d9', title:'Valkor: US$0.3m licence fee instalment', date:'2026-10-31', status:'pending', note:'Originally due 31 Mar 2026; deferred. On 14 Oct 2026 agreed to be settled 31 Oct 2026. Date has passed: no confirmation RNS seen yet. Check for a receipt announcement and update status.'},
+    {id:'d10', title:'Valkor: US$0.65m balance of licence fee', date:'', status:'overdue', note:'Originally due 30 Jun 2026 (then "by 30 Sep 2026" per the Jun 2026 RNS, then "by end Oct" per Sep 2026). Now payable "upon closure of Valkor’s ongoing fundraising" with no date; Valkor financing was said to be due Q4 2026.'},
+    {id:'d11', title:'Valkor: 600bpd MMU delivered to Utah (US$0.2m payment)', date:'2026-12-31', status:'pending', note:'Originally by 30 Jun 2026, then Q3 2026. Now scheduled for delivery "following receipt of the outstanding fee"; CEO report says Q4 2026 once the fee is received. A further US$0.3m falls due on a later full-size 6,000bpd unit.'},
+    {id:'d12', title:'Valkor: US$75k quarterly support fee payments begin', date:'2026-07-01', status:'pending', note:'Under the Sep 2025 addendum, payable quarterly from 1 Jul 2026 for at least two years. The 26 Oct 2026 RNS does not mention these; check whether any have been received.'},
+    {id:'d13', title:'Valkor: 500bpd oil-sands pilot plant operational', date:'2026-12-31', status:'overdue', note:'Q2 2026 (Nov 2025) -> Q4 2026 (Mar 2026) -> Q4 2026 commissioning in the Oct 2026 CEO report, but the 16 Sep 2026 RNS said production "expected to commence in Q1 2027". Watch which date is used next.'},
+    {id:'d14', title:'Valkor receipts assumed in cash forecasts (about US$1.5m)', date:'2026-12-31', status:'pending', note:'FY26 accounts recognise a £245k (US$325k) impairment provision on the Valkor receivable and describe the deferral. FY25 report had already flagged the risk that these sums are "not received, reduced in amount, or significantly delayed".'},
+    {id:'d15', title:'TRACKED SLIP: positive cashflow date', date:'2028-08-31', status:'overdue', note:'Q1 2027 (FY25 report, Sep 2025) -> FY2028-29 implied (Jul 2026 placing doc) -> August 2028 (Oct 2026). Further movement would be the third change in about 13 months.'},
+    {id:'d16', title:'MSC: commercial-scale bioMSAR trial aboard Leandra V', date:'2026-03-31', status:'overdue', note:'"Planned for early 2026" (FY25 report, Sep 2025). CEO report 26 Oct 2026: "We did not start the MSC and Cargill trial". Now targeted Q1 2027 (see separate entry).'},
+    {id:'d17', title:'Refinery: at least one commercial production agreement', date:'2027-10-26', status:'pending', note:'Target is "in the year ahead" (26 Oct 2026). Active discussions with four refineries near bunkering hubs; no agreement. Supported by Quadrise modelling of US$15-25m potential annual margin improvement for a mid-sized refinery, which is a company estimate, not a licence fee. Earlier SE Asia refinery trial was anticipated Q1 2025 (Nov 2024 update); I have not seen an agreement.'},
+    {id:'d19', title:'Valkor: representative oil sample received and MSAR/bioMSAR formulated', date:'2026-10-15', status:'met', note:'Reported 15 Oct 2026 and repeated in the 26 Oct RNS. Promised since Apr 2024 (marketing "before end Q2 2024 once samples tested"); Aug 2024 sample "being sent" for Q3 2024; Jun 2025 earlier samples "unrepresentative"; Q1 2026 -> Q2 2026 -> received Oct 2026. Only a formulation result so far, not commercial-grade test data.'},
+    {id:'d20', title:'Valkor: further formulation/optimisation work completed', date:'2026-12-31', status:'pending', note:'"Further optimisation work planned during Q4 2026". US marketing and MMU deployment were conditioned on testing results.'},
+    {id:'d21', title:'Strategic Review: progress update to shareholders', date:'2027-02-15', status:'pending', note:'"No later than mid-February 2027". It is an update on progress, not a completion date, and "there can be no assurance that any transaction will result". Options: master licence, private JV, non-controlling strategic investor, acquisition of related private business(es). Company says it is not seeking offers and no offer period has begun.'},
+    {id:'d22', title:'AGM: 27 Nov 2026, 12 noon (Salisbury House, 114 London Wall)', date:'2026-11-27', status:'pending', note:'Submit questions via Investor Meet Company by 09:00 GMT on the day or during the live presentation. Proxy forms are separate.'},
+    {id:'d23', title:'FY27 corporate scorecard (30m performance options at 3.5p)', date:'2027-06-30', status:'pending', note:'Granted 21 Sep 2026 incl. 8m to the CEO and 7m to the CTO; vest on FY27 scorecard (25% or 50% per anniversary). The 15.6m options issued Oct 2025 lapsed in full as targets were missed. Ask for the scorecard contents.'}
   ];
 
-  function load(){
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+  function readJSON(key, fallback){
     try{
-      const raw = localStorageFallback();
-      return raw;
-    }catch(e){ return null; }
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    }catch(e){ return fallback; }
   }
-  function localStorageFallback(){ return null; }
 
   let entries = [];
 
   async function init(){
-    try{
-      const raw = localStorage.getItem(KEY);
-      entries = raw ? JSON.parse(raw) : defaults;
-    }catch(e){
-      entries = defaults;
+    let saved = readJSON(KEY, null);
+    const removed = readJSON(REMOVED_KEY, []);
+    let savedVersion = null;
+    try{ savedVersion = localStorage.getItem(VERSION_KEY); }catch(e){}
+
+    if(!Array.isArray(saved)){
+      entries = clone(defaults).filter(function(d){ return removed.indexOf(d.id) === -1; });
+    } else if(savedVersion === DEFAULTS_VERSION){
+      entries = saved;
+    } else {
+      // New built-in entries/wording: merge by id, keep the user's own entries and any status they set themselves
+      const defById = {};
+      defaults.forEach(function(d){ defById[d.id] = d; });
+      const seen = {};
+      entries = [];
+      saved.forEach(function(e){
+        if(RETIRED.indexOf(e.id) !== -1) return;
+        if(defById[e.id]){
+          const d = clone(defById[e.id]);
+          if(e.userSet){ d.status = e.status; d.userSet = true; }
+          entries.push(d);
+          seen[e.id] = true;
+        } else {
+          entries.push(e);
+        }
+      });
+      defaults.forEach(function(d){
+        if(!seen[d.id] && removed.indexOf(d.id) === -1) entries.push(clone(d));
+      });
     }
+    try{
+      localStorage.setItem(KEY, JSON.stringify(entries));
+      localStorage.setItem(VERSION_KEY, DEFAULTS_VERSION);
+    }catch(e){}
     render();
   }
 
@@ -180,6 +217,7 @@ input, select, textarea, button{font-size:16px;} /* prevents iOS auto-zoom on fo
       sel.addEventListener('change', (ev)=>{
         const i = parseInt(ev.target.getAttribute('data-idx'));
         entries[i].status = ev.target.value;
+        entries[i].userSet = true;
         persist();
         render();
       });
@@ -187,7 +225,12 @@ input, select, textarea, button{font-size:16px;} /* prevents iOS auto-zoom on fo
     rowsEl.querySelectorAll('.del-btn').forEach(btn=>{
       btn.addEventListener('click', (ev)=>{
         const i = parseInt(ev.target.getAttribute('data-idx'));
-        entries.splice(i,1);
+        const gone = entries.splice(i,1)[0];
+        if(gone && /^d\d+$/.test(gone.id)){
+          const removed = readJSON(REMOVED_KEY, []);
+          if(removed.indexOf(gone.id) === -1) removed.push(gone.id);
+          try{ localStorage.setItem(REMOVED_KEY, JSON.stringify(removed)); }catch(e){}
+        }
         persist();
         render();
       });
